@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <!-- Webpage Title -->
+    <title>Uk's Area</title>
+
+    <!-- Required meta tags -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+          integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm"
+          crossorigin="anonymous">
+
+    <!-- JS -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
+            integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+            crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
+            integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+            crossorigin="anonymous"></script>
+
+    <!-- 구글폰트 -->
+    <link href="https://fonts.googleapis.com/css?family=Stylish&display=swap" rel="stylesheet">
+
+    <style type="text/css">
+        * {
+            font-family: 'Stylish', sans-serif;
+        }
+
+        body {
+            background-color: darkslategray;
+        }
+
+        .wrap {
+            width: 600px;
+            margin: auto;
+            padding: 30px;
+            background-color: white;
+        }
+
+
+        /*.img {*/
+        /*    background-image: url('https://blogfiles.pstatic.net/MjAyMDEwMjBfMTY4/MDAxNjAzMTcyNzE4Mzg5.F4tggt-6cB_EEscYxZHpbH6DWvZjB4PatH1eX3yL9NYg.5TmzvusAE0TYZQ9Qh7ilAkPq6owxYEDZfT5vl76P0VEg.GIF.choisang08/%EA%B7%80%EC%97%AC%EC%9A%B4.gif?type=w2');*/
+        /*    background-size: cover;*/
+        /*    background-position: center;*/
+        /*    width: 500px;*/
+        /*    height: 300px;*/
+        /*}*/
+
+        .info {
+            margin-top: 20px;
+            margin-bottom: 20px;
+        }
+
+
+        h1, h5, p.desc {
+            text-align: center;
+        }
+
+
+        .order {
+            text-align: center;
+        }
+
+        .center {
+            width: 333px;
+            height: 318px;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+            border: 1px solid black;
+        }
+
+        .table tr {
+            font-size: 0.8em;
+        }
+
+
+        /*.orders {*/
+        /*    margin-top: 100px;*/
+        /*}*/
+
+    </style>
+
+    <script>
+
+        $(document).ready(function () {
+            $.ajax({
+                type: "GET",
+                url: "https://api.manana.kr/exchange/rate.json",
+                data: {},
+                success: function (response) {
+                    let rate = response[1]["rate"];
+                    $('#exchange').text('실시간 원달러 환율 ' + rate);
+                }
+            })
+            showTable();
+            // 여기에 환율 API Ajax 요청을 하면 되겠죠?
+        });
+
+
+        function order() {
+
+            let user = $('#order-name').val();
+            if (user == '') {
+                alert('이름을 입력하세요')
+                return;
+            }
+
+            let num = $('#order-count').val();
+            if (num == '') {
+                alert('수량을 선택하세요');
+                return;
+            }
+
+            let addr = $('#order-address').val();
+            if (addr == '') {
+                alert('주소를 입력하세요');
+                return;
+            }
+
+            let phoneNum = $('#order-phone').val()
+            if (phoneNum.match(/^[0-1]{3}[-]+[0-9]{4}[-]+[0-9]{4}$/)) {
+                alert('주문완료');
+                $.ajax({
+                    type: "POST",
+                    url: "/order",
+                    data: {
+                        name_give: user,
+                        quan_give: num,
+                        addr_give: addr,
+                        phone_give: phoneNum
+                    },
+                    success: function (response) {
+                        if (response["result"] == "success") {
+                            alert(response['msg']);
+                            window.location.reload();
+                        }
+                    }
+                })
+
+
+            } else {
+                alert('010-XXXX-XXXX 타입으로 입력하세요');
+            }
+        }
+
+        function showTable() {
+            $.ajax({
+                type: "GET",
+                url: "/order",
+                data: {},
+                success: function (response) {
+                    let eachInfo = response['orders'];
+                    for (let i = 0; i < response['orders'].length; i++) {
+                        makeTable(eachInfo[i]['username'], eachInfo[i]['quantity'], eachInfo[i]['address'], eachInfo[i]['phonenumber']);
+                    }
+                }
+            })
+        }
+
+        function makeTable(user, num, addr, phoneNum) {
+            let tempHtml = `<tr>
+                                    <th scope="row">${user}</th>
+                                    <td>${num}</td>
+                                    <td>${addr}</td>
+                                    <td>${phoneNum}</td>
+                                </tr>`;
+
+            $('#orderlist').append(tempHtml);
+        }
+    </script>
+
+
+</head>
+<body>
+<div class="wrap">
+    <!--            <div class="img"></div>-->
+    <img src="https://blogfiles.pstatic.net/MjAyMDExMDRfMTM0/MDAxNjA0NDk5NTQzNTQ3.FAHyu5Qj13tNKGbCkTWM36S_g2h_k5Zf0DmkhS9oOOAg.jeuuPBGIZ7Hp_BFDb9z4GMp3ufnK_pSCT1uEWaitFTUg.JPEG.choisang08/%EC%BD%94%EC%A7%A42.jpg?type=w2"
+         class="center">
+
+    <div class="info">
+        <h1 style="text-align: center">욱이의 포토수집</h1>
+        <h5>Free</h5>
+        <p class="desc">필요없을 코드라고 생각했는데 ..</p>
+        <p class="desc"><a id="exchange"
+                           href="https://www.google.co.kr/search?sxsrf=ALeKk01YTIjWwVbtplSDsc6nDzCy-VphxQ%3A1604507352847&source=hp&ei=2NaiX5DGMc__wAPvqZrQBA&q=dollar+won&oq=dollar+won&gs_lcp=CgZwc3ktYWIQAzIJCCMQJxBGEIICMgIIADICCAAyBQgAEMsBMgUIABDLATICCAAyBQgAEMsBMgUIABDLATIFCAAQywEyBQgAEMsBOgQIIxAnOgQIABBDOg0IABCxAxCDARAUEIcCOggIABCxAxCDAToKCAAQsQMQFBCHAjoFCAAQsQNQFFivCWC-CmgAcAB4AIABe4gB0wiSAQQwLjEwmAEAoAEBqgEHZ3dzLXdpeg&sclient=psy-ab&ved=0ahUKEwiQkrfWp-nsAhXPP3AKHe-UBkoQ4dUDCAc&uact=5"
+                           target="_blank">안녕</a></p>
+
+        <div class="input-group mb-3">
+            <div class="input-group-prepend">
+                <span class="input-group-text">주문자 이름</span>
+            </div>
+            <input type="text" class="form-control" id="order-name">
+        </div>
+        <div class="input-group mb-3">
+            <div class="input-group-prepend">
+                <label class="input-group-text">수량</label>
+            </div>
+            <select class="custom-select" id="order-count">
+                <option selected value=""> -- 수량을 선택하세요 --</option>
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+            </select>
+        </div>
+        <div class="input-group mb-3">
+            <div class="input-group-prepend">
+                <span class="input-group-text">주소</span>
+            </div>
+            <input type="text" class="form-control" id="order-address">
+        </div>
+        <div class="input-group mb-3">
+            <div class="input-group-prepend">
+                <span class="input-group-text">전화번호</span>
+            </div>
+            <input type="text" class="form-control" id="order-phone">
+        </div>
+        <div class="order">
+            <button onclick="order()" type="button" class="btn btn-primary">클릭클릭</button>
+        </div>
+    </div>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th scope="col">이름</th>
+                <th scope="col">수량</th>
+                <th scope="col">주소</th>
+                <th scope="col">핸드폰</th>
+            </tr>
+        </thead>
+        <tbody id="orderlist">
+            <tr>
+                <th scope="row">최상욱</th>
+                <td>3</td>
+                <td>서울시 구로구 일이로 ABC 아파트 123동 4567호</td>
+                <td>010-1234-5678</td>
+            </tr>
+        </tbody>
+    </table>
+
+</div>
+
+
+</body>
+</html>
